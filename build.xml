@@ -18,7 +18,7 @@
 	</target>
 
 	<target name="java" depends="compile">
-		<java classname="Main">
+		<java classname="jsconsole.JsConsole">
 			<classpath refid="classpath"/>
 		</java>
 	</target>
