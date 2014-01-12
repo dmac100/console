@@ -35,7 +35,7 @@
 				</archives>
 			</restrict>
 			<manifest>
-				<attribute name="Main-Class" value="Main"/>
+				<attribute name="Main-Class" value="jsconsole.JsConsole"/>
 			</manifest>
 		</jar>
 	</target>
