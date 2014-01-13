@@ -10,7 +10,7 @@ public class Completion {
 	private LinkedHashSet<String> words = new LinkedHashSet<String>();
 
 	public void setHistory(List<String> history) {
-		int skip = Math.max(0, history.size() - 10);
+		int skip = Math.max(0, history.size() - 1000);
 		
 		for(String s:history) {
 			if(skip > 0) {
