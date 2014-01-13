@@ -54,10 +54,10 @@ public class JsConsole {
 				try {
 					ScriptResult result = script.eval(command);
 					if(result.getOutput().length() > 0) {
-						consoleView.appendOutput(result.getOutput().trim());
+						consoleView.appendOutput(result.getOutput());
 					}
 					if(result.getError().length() > 0) {
-						consoleView.appendError(result.getError().trim());
+						consoleView.appendError(result.getError());
 					}
 					consoleView.appendOutput("=> " + result.getValue());
 				} catch(Exception e) {
@@ -79,6 +79,8 @@ public class JsConsole {
 	public void show() {
 		SwingUtil.invoke(new Runnable() {
 			public void run() {
+				if(consoleView.isShowing()) return;
+				
 				consoleView.show();
 				consoleView.addWindowListener(new WindowAdapter() {
 					public void windowClosed(WindowEvent event) {
@@ -96,6 +98,14 @@ public class JsConsole {
 	}
 	
 	public void waitForExit() {
+		SwingUtil.invoke(new Runnable() {
+			public void run() {
+				if(!consoleView.isShowing()) {
+					show();
+				}
+			}
+		});
+		
 		try {
 			exitLatch.await();
 		} catch(InterruptedException e) {
@@ -108,8 +118,8 @@ public class JsConsole {
 		jsConsole.show();
 		jsConsole.waitForExit();
 	}
-	
+
 	public static void main(String[] args) {
-		new JsConsole().open();
+		new JsConsole().waitForExit();
 	}
 }

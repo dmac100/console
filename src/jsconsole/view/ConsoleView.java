@@ -29,6 +29,11 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+import ansi.AnsiParser;
+import ansi.AnsiStyle;
+import ansi.ParseResult;
+import ansi.RGB;
+
 import jsconsole.util.Callback;
 
 public class ConsoleView {
@@ -176,7 +181,7 @@ public class ConsoleView {
 	
 	private void runCommand() {
 		String command = textField.getText();
-		append("> " + command + "\n", commandStyle);
+		append("> " + command + "\n", commandStyle, false);
 		textField.setText("");
 		
 		history.add(command);
@@ -204,20 +209,52 @@ public class ConsoleView {
 	}
 	
 	public void appendOutput(String text) {
-		append(text + "\n", outputStyle);
+		append(text + "\n", outputStyle, true);
 	}
 	
 	public void appendError(String text) {
-		append(text + "\n", errorStyle);
+		append(text + "\n", errorStyle, true);
 	}
 	
-	private void append(String text, AttributeSet attributes) {
+	private void append(String text, AttributeSet attributes, boolean parseAnsi) {
 		StyledDocument document = textPane.getStyledDocument();
 		
+		AnsiStyle lastStyle = new AnsiStyle();
+		ParseResult parseResult = new AnsiParser().parseText(lastStyle, text);
+		int offset = document.getLength();
+		
 		try {
-			document.insertString(document.getLength(), text, attributes);
+			document.insertString(offset, parseResult.getNewText(), attributes);
 		} catch (BadLocationException e) {
 			throw new RuntimeException("Can't append text", e);
+		}
+		
+		for(AnsiStyle ansiStyle:parseResult.getStyleRanges()) {
+			RGB fg = ansiStyle.foreground;
+			RGB bg = ansiStyle.background;
+			
+			SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+			
+			if(fg != null) {
+				StyleConstants.setForeground(attributeSet, new Color(fg.r, fg.g, fg.b));
+			}
+			if(bg != null) {
+				StyleConstants.setBackground(attributeSet, new Color(bg.r, bg.g, bg.b));
+			}
+			if(ansiStyle.bold) {
+				StyleConstants.setBold(attributeSet, true);
+			}
+			if(ansiStyle.italic) {
+				StyleConstants.setItalic(attributeSet, true);
+			}
+			if(ansiStyle.underline) {
+				StyleConstants.setUnderline(attributeSet, true);
+			}
+			if(ansiStyle.doubleUnderline) {
+				StyleConstants.setUnderline(attributeSet, true);
+			}
+			
+			document.setCharacterAttributes(ansiStyle.start + offset, ansiStyle.length, attributeSet, false);
 		}
 		
 		scrollToBottom();
@@ -230,5 +267,9 @@ public class ConsoleView {
 				scroll.setValue(scroll.getMaximum());
 			}
 		});
+	}
+
+	public boolean isShowing() {
+		return frame.isVisible();
 	}
 }
