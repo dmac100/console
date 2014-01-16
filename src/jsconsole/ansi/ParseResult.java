@@ -1,4 +1,4 @@
-package ansi;
+package jsconsole.ansi;
 
 import java.util.List;
 

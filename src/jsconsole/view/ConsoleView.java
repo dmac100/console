@@ -29,10 +29,10 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
-import ansi.AnsiParser;
-import ansi.AnsiStyle;
-import ansi.ParseResult;
-import ansi.RGB;
+import jsconsole.ansi.AnsiParser;
+import jsconsole.ansi.AnsiStyle;
+import jsconsole.ansi.ParseResult;
+import jsconsole.ansi.RGB;
 
 import jsconsole.util.Callback;
 

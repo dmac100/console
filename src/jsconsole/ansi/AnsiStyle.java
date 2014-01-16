@@ -1,4 +1,4 @@
-package ansi;
+package jsconsole.ansi;
 
 public class AnsiStyle {
 	public int start;

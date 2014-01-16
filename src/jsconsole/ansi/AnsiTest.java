@@ -1,4 +1,4 @@
-package ansi;
+package jsconsole.ansi;
 
 public class AnsiTest {
 	public void print() {
