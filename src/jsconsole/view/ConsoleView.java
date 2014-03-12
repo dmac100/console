@@ -6,11 +6,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,11 +91,11 @@ public class ConsoleView {
 		StyleConstants.setForeground(outputStyle, new Color(255, 255, 255));
 		StyleConstants.setForeground(errorStyle, new Color(249, 38, 114));
         
-        textPane.addFocusListener(new FocusAdapter() {
-			public void focusGained(FocusEvent e) {
+		textPane.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
 				textField.requestFocusInWindow();
 			}
-        });
+		});
         
 		textField.setFocusTraversalKeysEnabled(false);
 		
