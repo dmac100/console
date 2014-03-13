@@ -1,6 +1,8 @@
 package jsconsole.script;
-import java.io.ByteArrayOutputStream;
+
 import java.io.PrintStream;
+
+import jsconsole.util.Callback;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ImporterTopLevel;
@@ -26,25 +28,40 @@ public class Script {
 		scope.defineProperty(name, value, 0);
 	}
 	
-	public ScriptResult eval(String command) {
+	public String eval(String command) {
+		Callback<String> nullCallback = new Callback<String>() {
+			public void onCallback(String t) {
+			}
+		};
+		
+		return eval(command, nullCallback, nullCallback);
+	}
+	
+	public String eval(String command, Callback<String> outputCallback, Callback<String> errorCallback) {
 		Context context = Context.enter();
 		try {
 			context.setOptimizationLevel(-1);
 	        context.setLanguageVersion(Context.VERSION_1_8);
 	        
-	        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-	        ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-	        
 	        PrintStream out = System.out;
 	        PrintStream err = System.err;
 	        try {
-		        System.setOut(new PrintStream(outputStream));
-		        System.setErr(new PrintStream(errorStream));
+	        	LineReader outputReader = new LineReader(outputCallback);
+	        	LineReader errorReader = new LineReader(errorCallback);
+	        	
+		        System.setOut(new PrintStream(outputReader.getOutputStream()));
+		        System.setErr(new PrintStream(errorReader.getOutputStream()));
 			
 				Object output = context.evaluateString(scope, command, "<js>", 1, null);
 				String value = Context.toString(output);
+
+				System.err.close();
+				System.out.close();
 				
-				return new ScriptResult(value, outputStream.toString(), errorStream.toString());
+				outputReader.waitUntilDone();
+				errorReader.waitUntilDone();
+				
+				return value;
 	        } finally {
 	        	System.setOut(out);
 	        	System.setErr(err);

@@ -3,17 +3,20 @@ package jsconsole;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
+
+import javax.swing.SwingUtilities;
 
 import jsconsole.script.Script;
-import jsconsole.script.ScriptResult;
 import jsconsole.util.Callback;
 import jsconsole.util.SwingUtil;
 import jsconsole.view.ConsoleView;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 public class JsConsole {
+	private static ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build());
+	
 	private final CountDownLatch exitLatch = new CountDownLatch(1);
 	
 	private History history = new History();
@@ -44,33 +47,60 @@ public class JsConsole {
 	}
 	
 	public void execute(final String command) {
-		SwingUtil.invoke(new Runnable() {
+		executor.execute(new Runnable() {
 			public void run() {
 				if(command.equals("clear")) {
-					consoleView.clear();
+					SwingUtil.invoke(new Runnable() {
+						public void run() {
+							consoleView.clear();
+						}
+					});
 					return;
 				}
 				
 				try {
-					ScriptResult result = script.eval(command);
-					if(result.getOutput().length() > 0) {
-						consoleView.appendOutput(result.getOutput());
-					}
-					if(result.getError().length() > 0) {
-						consoleView.appendError(result.getError());
-					}
-					consoleView.appendOutput("=> " + result.getValue());
-				} catch(Exception e) {
-					e.printStackTrace();
-					consoleView.appendError(e.getMessage());
+					Callback<String> outputCallback = new Callback<String>() {
+						public void onCallback(final String line) {
+							SwingUtil.invoke(new Runnable() {
+								public void run() {
+									consoleView.appendOutput(line);
+								}
+							});
+						}
+					};
+					
+					Callback<String> errorCallback = new Callback<String>() {
+						public void onCallback(final String line) {
+							SwingUtil.invoke(new Runnable() {
+								public void run() {
+									consoleView.appendError(line);
+								}
+							});
+						}
+					};
+					
+					final String result = script.eval(command, outputCallback, errorCallback);
+					
+					SwingUtil.invoke(new Runnable() {
+						public void run() {
+							consoleView.appendOutput("=> " + result);
+						}
+					});
+				} catch(final Exception e) {
+					SwingUtil.invoke(new Runnable() {
+						public void run() {
+							e.printStackTrace();
+							consoleView.appendError(e.getMessage());
+						}
+					});
 				}
 			}
 		});
 	}
 	
-	public ScriptResult eval(final String command) {
-		return SwingUtil.invoke(new Callable<ScriptResult>() {
-			public ScriptResult call() throws Exception {
+	public String eval(final String command) {
+		return SwingUtil.invoke(new Callable<String>() {
+			public String call() throws Exception {
 				return script.eval(command);
 			}
 		});
@@ -120,6 +150,8 @@ public class JsConsole {
 	}
 
 	public static void main(String[] args) {
-		new JsConsole().waitForExit();
+		JsConsole console = new JsConsole();
+		console.addVariable("console", console);
+		console.waitForExit();
 	}
 }
