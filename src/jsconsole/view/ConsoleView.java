@@ -19,11 +19,7 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 
 import jsconsole.ansi.AnsiParser;
 import jsconsole.ansi.AnsiStyle;
@@ -33,6 +29,8 @@ import jsconsole.ansi.RGB;
 import jsconsole.util.Callback;
 
 public class ConsoleView {
+	private final static int MAX_BUFFER_LINES = 30000;
+	
 	private Completion completion = new Completion();
 	
 	private List<String> history = new ArrayList<String>();
@@ -253,9 +251,26 @@ public class ConsoleView {
 			document.setCharacterAttributes(ansiStyle.start + offset, ansiStyle.length, attributeSet, false);
 		}
 		
+		limitBufferLength();
+		
 		scrollToBottom();
 	}
 	
+	private void limitBufferLength() {
+		StyledDocument document = textPane.getStyledDocument();
+		
+		Element element = document.getDefaultRootElement();
+		int lines = element.getElementCount();
+		if(lines > MAX_BUFFER_LINES) {
+			int offset = element.getElement(lines - MAX_BUFFER_LINES).getEndOffset();
+			try {
+				document.remove(0, offset);
+			} catch (BadLocationException e) {
+				throw new RuntimeException("Can't remove text", e);
+			}
+		}
+	}
+
 	private void scrollToBottom() {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
