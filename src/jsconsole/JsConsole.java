@@ -5,11 +5,10 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.concurrent.*;
 
-import javax.swing.SwingUtilities;
-
 import jsconsole.script.Script;
 import jsconsole.util.Callback;
 import jsconsole.util.SwingUtil;
+import jsconsole.view.ConsoleBuffer;
 import jsconsole.view.ConsoleView;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -59,27 +58,23 @@ public class JsConsole {
 				}
 				
 				try {
+					final ConsoleBuffer consoleBuffer = new ConsoleBuffer(consoleView);
+					
 					Callback<String> outputCallback = new Callback<String>() {
 						public void onCallback(final String line) {
-							SwingUtil.invoke(new Runnable() {
-								public void run() {
-									consoleView.appendOutput(line);
-								}
-							});
+							consoleBuffer.appendOutput(line);
 						}
 					};
 					
 					Callback<String> errorCallback = new Callback<String>() {
 						public void onCallback(final String line) {
-							SwingUtil.invoke(new Runnable() {
-								public void run() {
-									consoleView.appendError(line);
-								}
-							});
+							consoleBuffer.appendError(line);
 						}
 					};
 					
 					final String result = script.eval(command, outputCallback, errorCallback);
+					
+					consoleBuffer.flush();
 					
 					SwingUtil.invoke(new Runnable() {
 						public void run() {
@@ -148,10 +143,9 @@ public class JsConsole {
 		jsConsole.show();
 		jsConsole.waitForExit();
 	}
-
+	
 	public static void main(String[] args) {
 		JsConsole console = new JsConsole();
-		console.addVariable("console", console);
 		console.waitForExit();
 	}
 }

@@ -55,8 +55,8 @@ public class Script {
 				Object output = context.evaluateString(scope, command, "<js>", 1, null);
 				String value = Context.toString(output);
 
-				System.err.close();
 				System.out.close();
+				System.err.close();
 				
 				outputReader.waitUntilDone();
 				errorReader.waitUntilDone();
