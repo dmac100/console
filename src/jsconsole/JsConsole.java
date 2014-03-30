@@ -41,11 +41,13 @@ public class JsConsole {
 		});
 	}
 	
-	public void addVariable(String name, Object value) {
+	public JsConsole addVariable(String name, Object value) {
 		script.addVariable(name, value);
+
+		return this;
 	}
 	
-	public void execute(final String command) {
+	public JsConsole execute(final String command) {
 		executor.execute(new Runnable() {
 			public void run() {
 				if(command.equals("clear")) {
@@ -91,6 +93,8 @@ public class JsConsole {
 				}
 			}
 		});
+
+		return this;
 	}
 	
 	public String eval(final String command) {
@@ -101,7 +105,7 @@ public class JsConsole {
 		});
 	}
 	
-	public void show() {
+	public JsConsole show() {
 		SwingUtil.invoke(new Runnable() {
 			public void run() {
 				if(consoleView.isShowing()) return;
@@ -120,9 +124,11 @@ public class JsConsole {
 				});
 			}
 		});
+
+		return this;
 	}
 	
-	public void waitForExit() {
+	public JsConsole waitForExit() {
 		SwingUtil.invoke(new Runnable() {
 			public void run() {
 				if(!consoleView.isShowing()) {
@@ -136,16 +142,11 @@ public class JsConsole {
 		} catch(InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	public void open() {
-		JsConsole jsConsole = new JsConsole();
-		jsConsole.show();
-		jsConsole.waitForExit();
+
+		return this;
 	}
 	
 	public static void main(String[] args) {
-		JsConsole console = new JsConsole();
-		console.waitForExit();
+		new JsConsole().waitForExit();
 	}
 }
