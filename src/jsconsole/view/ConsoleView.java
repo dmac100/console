@@ -10,14 +10,7 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 
@@ -40,7 +33,7 @@ public class ConsoleView {
 	private JFrame frame;
 	private JScrollPane scrollPane;
 	private JTextPane textPane;
-	private JTextField textField;
+	private JTextArea textField;
 
 	private Callback<String> commandCallback;
 	
@@ -60,7 +53,7 @@ public class ConsoleView {
                 super.paintComponent(g);
             }
 		};
-		this.textField = new JTextField();
+		this.textField = new JTextArea();
 		
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -110,12 +103,18 @@ public class ConsoleView {
 					
 					if(e.getKeyCode() == KeyEvent.VK_TAB) {
 						insertCompletion();
+						e.consume();
 					} else {
 						dismissCompletion();
 					}
 					
 					if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 						runCommand();
+						e.consume();
+					}
+				} else if(e.getModifiers() == KeyEvent.SHIFT_MASK) {
+					if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+						textField.setText(textField.getText() + "\n");
 					}
 				}
 			}
@@ -174,7 +173,7 @@ public class ConsoleView {
 	}
 	
 	private void runCommand() {
-		String command = textField.getText();
+		String command = textField.getText().trim();
 		append("> " + command + "\n", commandStyle, false);
 		textField.setText("");
 		
