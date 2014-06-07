@@ -83,7 +83,7 @@ public class JsConsole {
 							consoleView.appendOutput("=> " + result);
 						}
 					});
-				} catch(final Exception e) {
+				} catch(final Throwable e) {
 					SwingUtil.invoke(new Runnable() {
 						public void run() {
 							e.printStackTrace();
